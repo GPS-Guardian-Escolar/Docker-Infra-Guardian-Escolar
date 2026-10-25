@@ -8,16 +8,37 @@ Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar.
 - `backend`: API Spring Boot construida desde `../Backend-Guardian-Escolar`.
 - `frontend`: aplicacion Expo Web construida desde `../Fronted-GuardianEscolar-` y servida con Nginx.
 
+## Preparacion
+
+Clona los cuatro repositorios como carpetas hermanas y conserva exactamente estos nombres:
+
+```text
+ENTREGABLE 3.5/
+  Docker-Infra-Guardian-Escolar/
+  DB-Structure-Guardian-Escolar/
+  Backend-Guardian-Escolar/
+  Fronted-GuardianEscolar-/
+```
+
+Copia `.env.example` a `.env` y define como minimo `POSTGRES_PASSWORD` y `JWT_SECRET`.
+La clave JWT debe ser aleatoria y tener al menos 32 bytes. No guardes `.env` en Git.
+
 ## Ejecutar desde la raiz del proyecto
 
 ```powershell
-docker compose --env-file .\docker-infra\.env -f .\docker-infra\docker-compose.yaml up --build
+docker compose --env-file .\Docker-Infra-Guardian-Escolar\.env -f .\Docker-Infra-Guardian-Escolar\docker-compose.yaml up --build
 ```
 
 ## Ejecutar desde esta carpeta
 
 ```powershell
 docker compose --env-file .\.env up --build
+```
+
+Para una validacion sin iniciar contenedores:
+
+```powershell
+docker compose --env-file .\.env config --quiet
 ```
 
 ## Puertos
@@ -36,6 +57,12 @@ gps_guardian_escolar_postgres_data
 
 Usa `docker compose down` para apagar conservando datos.
 Usa `docker compose down -v` solo si quieres borrar tambien la base de datos.
+
+## Despliegue y rollback
+
+El flujo operativo esta documentado en [`docs/DEPLOYMENT_ROLLBACK.md`](docs/DEPLOYMENT_ROLLBACK.md).
+Las migraciones se aplican mediante el servicio `liquibase` antes de iniciar el backend.
+No uses `down -v` como rollback: elimina el volumen y los datos locales.
 
 ## Uso con contenedor o tunnel
 
