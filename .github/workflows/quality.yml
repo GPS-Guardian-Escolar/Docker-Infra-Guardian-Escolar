@@ -1,0 +1,16 @@
+name: Infrastructure quality
+
+on:
+  pull_request:
+  push:
+    branches: [dev, qa, main]
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-password
+      JWT_SECRET: ci-only-secret-with-at-least-32-random-bytes
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
