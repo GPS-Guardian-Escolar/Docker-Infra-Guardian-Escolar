@@ -7,6 +7,13 @@ Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar. L
 - `Fronted-GuardianEscolar-`
 - `Docker-Infra-Guardian-Escolar`
 
+## Servicios
+
+- `database`: PostgreSQL.
+- `liquibase`: ejecuta las migraciones de DB-Structure.
+- `backend`: API Spring Boot con la cuenta de minimo privilegio `gps_guardian_app`.
+- `frontend`: aplicacion Expo Web servida por Nginx.
+
 ## Preparacion
 
 Clona los cuatro repositorios como carpetas hermanas y conserva exactamente estos nombres:
@@ -22,6 +29,8 @@ ENTREGABLE 3.5/
 Desde esta carpeta, copia `.env.example` a `.env` y completa las variables privadas. No uses el
 `.env` de otro repositorio ni guardes contrasenas reales en Git. Configura `POSTGRES_PASSWORD`,
 `APP_DB_PASSWORD` y `JWT_SECRET`. La clave JWT debe ser aleatoria y tener al menos 32 bytes.
+
+Completa `POSTGRES_PASSWORD`, `APP_DB_PASSWORD` y `JWT_SECRET` antes de iniciar.
 
 Configura `APP_DB_PASSWORD` con al menos 32 caracteres alfanumericos, guion o guion bajo.
 Ese secreto habilita la cuenta de minimo privilegio `gps_guardian_app`; el backend no se conecta
