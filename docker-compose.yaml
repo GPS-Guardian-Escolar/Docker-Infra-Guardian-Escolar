@@ -2,7 +2,7 @@ name: gps-guardian-escolar
 
 services:
   database:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE:-postgres:15}
     container_name: gps_guardian_escolar_database
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gps_guardian_escolar}
@@ -25,7 +25,7 @@ services:
     build:
       context: ../DB-Structure-Guardian-Escolar
       dockerfile: Dockerfile
-    image: gps_guardian_escolar_liquibase:latest
+    image: ${LIQUIBASE_IMAGE:-gps_guardian_escolar_liquibase}:${LIQUIBASE_IMAGE_TAG:-local}
     container_name: gps_guardian_escolar_liquibase
     depends_on:
       database:
@@ -33,7 +33,6 @@ services:
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-postgres}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
-      LIQUIBASE_COMMAND_CONTEXTS: ${LIQUIBASE_CONTEXTS:-prod}
     volumes:
       - ../DB-Structure-Guardian-Escolar/changelog:/liquibase/changelog:ro
       - ../DB-Structure-Guardian-Escolar/01_ddl:/db/01_ddl:ro
@@ -44,16 +43,13 @@ services:
     command:
       - --defaultsFile=/liquibase/liquibase.properties
       - --url=jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
-      - --changelog-parameter.APP_DB_PASSWORD=${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
-      - --changelog-parameter.ADMIN_EMAIL=${ADMIN_EMAIL:-}
-      - --changelog-parameter.ADMIN_PHONE=${ADMIN_PHONE:-}
-      - --changelog-parameter.ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-}
       - update
     restart: "no"
     networks:
       - guardian_network
 
   backend:
+    image: ${BACKEND_IMAGE:-gps_guardian_escolar_backend}:${BACKEND_IMAGE_TAG:-local}
     build:
       context: ../Backend-Guardian-Escolar
       dockerfile: Dockerfile
@@ -62,8 +58,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
-      DB_USERNAME: gps_guardian_app
-      DB_PASSWORD: ${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-30}
       REQUIRE_HTTPS: ${REQUIRE_HTTPS:-false}
@@ -109,6 +105,7 @@ services:
       - guardian_network
 
   frontend:
+    image: ${FRONTEND_IMAGE:-gps_guardian_escolar_frontend}:${FRONTEND_IMAGE_TAG:-local}
     build:
       context: ../Fronted-GuardianEscolar-
       dockerfile: Dockerfile
