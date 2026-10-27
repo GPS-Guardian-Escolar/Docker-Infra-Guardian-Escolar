@@ -2,7 +2,7 @@ name: gps-guardian-escolar
 
 services:
   database:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE:-postgres:15}
     container_name: gps_guardian_escolar_database
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gps_guardian_escolar}
@@ -25,7 +25,7 @@ services:
     build:
       context: ../DB-Structure-Guardian-Escolar
       dockerfile: Dockerfile
-    image: gps_guardian_escolar_liquibase:latest
+    image: ${LIQUIBASE_IMAGE:-gps_guardian_escolar_liquibase}:${LIQUIBASE_IMAGE_TAG:-local}
     container_name: gps_guardian_escolar_liquibase
     depends_on:
       database:
@@ -33,11 +33,17 @@ services:
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-postgres}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
+      LIQUIBASE_COMMAND_CONTEXTS: ${LIQUIBASE_CONTEXTS:-prod}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PHONE: ${ADMIN_PHONE:-}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
     volumes:
       - ../DB-Structure-Guardian-Escolar/changelog:/liquibase/changelog:ro
       - ../DB-Structure-Guardian-Escolar/01_ddl:/db/01_ddl:ro
       - ../DB-Structure-Guardian-Escolar/02_dml:/db/02_dml:ro
       - ../DB-Structure-Guardian-Escolar/03_dcl:/db/03_dcl:ro
+      - ../DB-Structure-Guardian-Escolar/05_rollbacks:/db/05_rollbacks:ro
       - ../DB-Structure-Guardian-Escolar/liquibase.properties:/liquibase/liquibase.properties:ro
     entrypoint: ["liquibase"]
     command:
@@ -49,6 +55,7 @@ services:
       - guardian_network
 
   backend:
+    image: ${BACKEND_IMAGE:-gps_guardian_escolar_backend}:${BACKEND_IMAGE_TAG:-local}
     build:
       context: ../Backend-Guardian-Escolar
       dockerfile: Dockerfile
@@ -57,8 +64,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_USERNAME: gps_guardian_app
+      DB_PASSWORD: ${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-30}
       REQUIRE_HTTPS: ${REQUIRE_HTTPS:-false}
@@ -73,7 +80,7 @@ services:
       MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:8081}
       API_PUBLIC_BASE_URL: ${API_PUBLIC_BASE_URL:-http://localhost:8080}
-      GPS_DESVIO_UMBRAL_METROS: ${GPS_DESVIO_UMBRAL_METROS:-150}
+      GPS_ROUTE_DEVIATION_THRESHOLD_METERS: ${GPS_ROUTE_DEVIATION_THRESHOLD_METERS:-150}
       EXPO_PUSH_ENABLED: ${EXPO_PUSH_ENABLED:-false}
       EXPO_PUSH_URL: ${EXPO_PUSH_URL:-https://exp.host/--/api/v2/push/send}
       SMS_ENABLED: ${SMS_ENABLED:-false}
@@ -104,6 +111,7 @@ services:
       - guardian_network
 
   frontend:
+    image: ${FRONTEND_IMAGE:-gps_guardian_escolar_frontend}:${FRONTEND_IMAGE_TAG:-local}
     build:
       context: ../Fronted-GuardianEscolar-
       dockerfile: Dockerfile

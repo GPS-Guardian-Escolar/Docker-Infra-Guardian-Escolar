@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-password
+      APP_DB_PASSWORD: ci-app-password-0123456789-abcdef
       JWT_SECRET: ci-only-secret-with-at-least-32-random-bytes
       EXPO_PUBLIC_API_URL: /api
       EXPO_PUBLIC_WS_URL: /ws
