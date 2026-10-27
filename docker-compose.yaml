@@ -34,10 +34,6 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-postgres}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
       LIQUIBASE_COMMAND_CONTEXTS: ${LIQUIBASE_CONTEXTS:-prod}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
-      ADMIN_PHONE: ${ADMIN_PHONE:-}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
     volumes:
       - ../DB-Structure-Guardian-Escolar/changelog:/liquibase/changelog:ro
       - ../DB-Structure-Guardian-Escolar/01_ddl:/db/01_ddl:ro
@@ -49,6 +45,10 @@ services:
     command:
       - --defaultsFile=/liquibase/liquibase.properties
       - --url=jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
+      - --changelog-parameter.APP_DB_PASSWORD=${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
+      - --changelog-parameter.ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - --changelog-parameter.ADMIN_PHONE=${ADMIN_PHONE:-}
+      - --changelog-parameter.ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-}
       - update
     restart: "no"
     networks:
