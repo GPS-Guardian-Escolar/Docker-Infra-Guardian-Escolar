@@ -11,6 +11,12 @@ Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar. L
 
 Desde esta carpeta, copia `.env.example` a `.env` y completa las variables privadas. No uses el `.env` de otro repositorio ni guardes contrasenas reales en Git.
 
+Configura `APP_DB_PASSWORD` con al menos 32 caracteres alfanumericos, guion o guion bajo.
+Ese secreto habilita la cuenta de minimo privilegio `gps_guardian_app`; el backend no se conecta
+como superusuario. Para un despliegue sin seed local, Compose usa el contexto Liquibase `prod`.
+En desarrollo local, `.env.example` opta por `LIQUIBASE_CONTEXTS=local`: define tambien
+`ADMIN_EMAIL`, `ADMIN_PHONE` y un `ADMIN_PASSWORD_HASH` BCrypt antes de iniciar los servicios.
+
 ## Ejecutar desde esta carpeta
 
 ```powershell
