@@ -11,13 +11,13 @@ Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar.
 ## Ejecutar desde la raiz del proyecto
 
 ```powershell
-docker compose --env-file .\docker-infra\.env -f .\docker-infra\docker-compose.yaml up --build
+docker compose --env-file .\Docker-Infra-Guardian-Escolar\.env -f .\Docker-Infra-Guardian-Escolar\docker-compose.yaml up --build
 ```
 
 ## Ejecutar desde esta carpeta
 
 ```powershell
-docker compose --env-file .\.env up --build
+docker compose --env-file .\.env -f .\docker-compose.yaml up --build
 ```
 
 ## Puertos
