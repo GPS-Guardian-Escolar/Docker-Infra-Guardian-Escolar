@@ -33,6 +33,7 @@ services:
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-postgres}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
+      LIQUIBASE_COMMAND_CONTEXTS: ${LIQUIBASE_CONTEXTS:-prod}
     volumes:
       - ../DB-Structure-Guardian-Escolar/changelog:/liquibase/changelog:ro
       - ../DB-Structure-Guardian-Escolar/01_ddl:/db/01_ddl:ro
@@ -44,6 +45,9 @@ services:
       - --defaultsFile=/liquibase/liquibase.properties
       - --url=jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
       - --changelog-parameter.APP_DB_PASSWORD=${APP_DB_PASSWORD:?Define APP_DB_PASSWORD for gps_guardian_app}
+      - --changelog-parameter.ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - --changelog-parameter.ADMIN_PHONE=${ADMIN_PHONE:-}
+      - --changelog-parameter.ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-}
       - update
     restart: "no"
     networks:
@@ -74,7 +78,7 @@ services:
       MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:8081}
       API_PUBLIC_BASE_URL: ${API_PUBLIC_BASE_URL:-http://localhost:8080}
-      GPS_DESVIO_UMBRAL_METROS: ${GPS_DESVIO_UMBRAL_METROS:-150}
+      GPS_ROUTE_DEVIATION_THRESHOLD_METERS: ${GPS_ROUTE_DEVIATION_THRESHOLD_METERS:-150}
       EXPO_PUSH_ENABLED: ${EXPO_PUSH_ENABLED:-false}
       EXPO_PUSH_URL: ${EXPO_PUSH_URL:-https://exp.host/--/api/v2/push/send}
       SMS_ENABLED: ${SMS_ENABLED:-false}
