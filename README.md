@@ -2,6 +2,10 @@
 
 Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar.
 
+Completa `POSTGRES_PASSWORD`, `APP_DB_PASSWORD` y `JWT_SECRET` en `.env` antes de iniciar.
+Compose detiene la configuracion si falta la contrasena de la cuenta de aplicacion
+`gps_guardian_app`; el backend nunca se conecta con el usuario administrador de PostgreSQL.
+
 ## Servicios
 
 - `database`: PostgreSQL 15 con la estructura cargada desde `../DB-Structure-Guardian-Escolar`.
