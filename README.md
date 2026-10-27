@@ -1,24 +1,36 @@
 # Docker Infra
 
-Esta carpeta centraliza la ejecucion de Guardian Escolar con Docker Compose.
+Esta carpeta centraliza la ejecucion por contenedores de Guardian Escolar.
 
-## Credenciales de base de datos
+## Despliegue reproducible
 
-Liquibase se conecta con `POSTGRES_USER` y `POSTGRES_PASSWORD`. El backend utiliza el rol de minimo privilegio `gps_guardian_app` y `APP_DB_PASSWORD`; no utiliza la cuenta superusuario de PostgreSQL.
+Antes de publicar una version, fija cada repositorio en el commit aprobado y registra los SHA de los cuatro repositorios junto con las referencias completas de sus imagenes. Para Liquibase, Backend y Frontend usa nombres de imagen de un registry y etiquetas inmutables derivadas del release. Fija tambien PostgreSQL por digest para produccion.
 
-Define `APP_DB_PASSWORD` en el archivo local `.env` antes de iniciar el stack. Debe tener al menos 32 caracteres compuestos por letras, numeros, guion o guion bajo. No guardes secretos reales en Git.
+Define `POSTGRES_IMAGE`, `LIQUIBASE_IMAGE`, `LIQUIBASE_IMAGE_TAG`, `BACKEND_IMAGE`, `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE` y `FRONTEND_IMAGE_TAG` en el archivo de release. Los valores locales de `.env.example` sirven para desarrollo y no son referencias de release.
 
-El rol de aplicacion debe estar habilitado por las migraciones de DB-Structure antes de iniciar el backend. La base `dev` actual crea el rol como `NOLOGIN`; integra primero la migracion de DB-Structure que habilita el login.
-
-Compose usa el contexto Liquibase `prod` por defecto. Para ejecutar la carga administrativa local, cambia `LIQUIBASE_CONTEXTS=local` y define `ADMIN_EMAIL`, `ADMIN_PHONE` y un `ADMIN_PASSWORD_HASH` BCrypt.
-
-## Ejecutar desde esta carpeta
-
-Copia `.env.example` a `.env`, completa los secretos y ejecuta:
+Construye y publica solo las imagenes propias:
 
 ~~~powershell
-docker compose --env-file .\.env -f .\docker-compose.yaml config
-docker compose --env-file .\.env -f .\docker-compose.yaml up --build
+docker compose --env-file .\.env build --pull liquibase backend frontend
+docker compose --env-file .\.env push liquibase backend frontend
 ~~~
 
-El backend se conecta al puerto 5432 interno de PostgreSQL por medio del servicio `database`.
+En el host de despliegue, configura el mismo archivo de release y sus secretos, descarga esas referencias e inicia el stack sin reconstruir:
+
+~~~powershell
+docker compose --env-file .\.env pull
+docker compose --env-file .\.env up -d
+~~~
+
+El servicio Liquibase debe finalizar antes de iniciar el Backend. Comprueba salud de la base, el endpoint de salud del Backend y el acceso al Frontend antes de aceptar trafico.
+
+## Rollback
+
+Restaura en el manifiesto las referencias inmutables de la version aprobada anterior, luego descarga y vuelve a iniciar las imagenes:
+
+~~~powershell
+docker compose --env-file .\.env pull
+docker compose --env-file .\.env up --no-build -d backend frontend
+~~~
+
+Este paso revierte las imagenes de aplicacion; no revierte cambios de esquema. Ejecuta un rollback Liquibase revisado solo despues de respaldar y validar la base en un entorno descartable. `docker compose down` conserva el volumen de PostgreSQL. No uses `docker compose down -v` como rollback.
