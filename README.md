@@ -64,6 +64,16 @@ El flujo operativo esta documentado en [`docs/DEPLOYMENT_ROLLBACK.md`](docs/DEPL
 Las migraciones se aplican mediante el servicio `liquibase` antes de iniciar el backend.
 No uses `down -v` como rollback: elimina el volumen y los datos locales.
 
+## Etiquetas de imagen
+
+Compose acepta `POSTGRES_IMAGE` y un nombre mas etiqueta para Liquibase, backend y frontend.
+Los valores `local` del ejemplo se construyen desde los repositorios hermanos. Para un release,
+usa una etiqueta inmutable (por ejemplo, el SHA del commit aprobado) y registra los SHA de los
+cuatro repositorios junto con las etiquetas. No uses `latest` para produccion. Para volver a una
+version de aplicacion, restaura las etiquetas aprobadas anteriores y ejecuta `docker compose up
+--no-build -d backend frontend`; los cambios de esquema requieren el rollback Liquibase revisado
+por separado.
+
 ## Uso con contenedor o tunnel
 
 Cuando el frontend se sirve desde el contenedor, usa rutas relativas para que el mismo dominio del navegador atienda frontend y API:

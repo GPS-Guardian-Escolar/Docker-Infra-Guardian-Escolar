@@ -31,7 +31,7 @@ The `database` healthcheck must pass first. Liquibase then runs `update`; the ba
    docker compose --env-file .\.env down
    ```
 
-2. Revert application images by checking out the previously approved commits and rebuilding with `--no-cache` if required.
+2. Restore the previous immutable `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` values recorded for the approved release, then run `docker compose --env-file .\.env up --no-build -d backend frontend`. If an image must be rebuilt from source, check out the recorded commit SHA first and use the same release tag.
 3. If a database changeset must be reverted, execute its reviewed Liquibase rollback from the database repository against a backup or disposable environment first. Do not edit an already applied changeset.
 4. Start the stack again and verify health, authentication and the affected flow.
 
