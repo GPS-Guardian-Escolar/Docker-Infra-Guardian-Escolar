@@ -1,0 +1,40 @@
+name: Infrastructure quality
+
+on:
+  pull_request:
+  push:
+    branches: [dev, qa, main]
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-password
+      APP_DB_PASSWORD: ci-app-password-0123456789-abcdef
+      JWT_SECRET: ci-only-secret-with-at-least-32-random-bytes
+      EXPO_PUBLIC_API_URL: /api
+      EXPO_PUBLIC_WS_URL: /ws
+      EXPO_PUBLIC_STUDENT_LINK_BASE_URL: /
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: Docker-Infra-Guardian-Escolar
+      - uses: actions/checkout@v4
+        with:
+          repository: GPS-Guardian-Escolar/Backend-Guardian-Escolar
+          ref: dev
+          path: Backend-Guardian-Escolar
+      - uses: actions/checkout@v4
+        with:
+          repository: GPS-Guardian-Escolar/DB-Structure-Guardian-Escolar
+          ref: dev
+          path: DB-Structure-Guardian-Escolar
+      - uses: actions/checkout@v4
+        with:
+          repository: GPS-Guardian-Escolar/Fronted-GuardianEscolar-
+          ref: develop
+          path: Fronted-GuardianEscolar-
+      - working-directory: Docker-Infra-Guardian-Escolar
+        run: docker compose config --quiet
+      - working-directory: Docker-Infra-Guardian-Escolar
+        run: docker compose build
