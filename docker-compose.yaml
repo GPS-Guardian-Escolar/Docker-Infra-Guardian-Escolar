@@ -2,7 +2,7 @@ name: gps-guardian-escolar
 
 services:
   database:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE:-postgres:15}
     container_name: gps_guardian_escolar_database
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gps_guardian_escolar}
@@ -25,7 +25,7 @@ services:
     build:
       context: ../DB-Structure-Guardian-Escolar
       dockerfile: Dockerfile
-    image: gps_guardian_escolar_liquibase:latest
+    image: ${LIQUIBASE_IMAGE:-gps_guardian_escolar_liquibase}:${LIQUIBASE_IMAGE_TAG:-local}
     container_name: gps_guardian_escolar_liquibase
     depends_on:
       database:
@@ -49,8 +49,9 @@ services:
       - guardian_network
 
   backend:
+    image: ${BACKEND_IMAGE:-gps_guardian_escolar_backend}:${BACKEND_IMAGE_TAG:-local}
     build:
-      context: ../backend
+      context: ../Backend-Guardian-Escolar
       dockerfile: Dockerfile
     container_name: gps_guardian_escolar_backend
     environment:
@@ -73,7 +74,7 @@ services:
       MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:8081}
       API_PUBLIC_BASE_URL: ${API_PUBLIC_BASE_URL:-http://localhost:8080}
-      GPS_DESVIO_UMBRAL_METROS: ${GPS_DESVIO_UMBRAL_METROS:-150}
+      GPS_ROUTE_DEVIATION_THRESHOLD_METERS: ${GPS_ROUTE_DEVIATION_THRESHOLD_METERS:-150}
       EXPO_PUSH_ENABLED: ${EXPO_PUSH_ENABLED:-false}
       EXPO_PUSH_URL: ${EXPO_PUSH_URL:-https://exp.host/--/api/v2/push/send}
       SMS_ENABLED: ${SMS_ENABLED:-false}
@@ -81,6 +82,19 @@ services:
       SMS_PROVIDER_URL: ${SMS_PROVIDER_URL:-}
       SMS_API_KEY: ${SMS_API_KEY:-}
       SMS_FROM: ${SMS_FROM:-GuardianEscolar}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_BASE_URL: ${GOOGLE_MAPS_BASE_URL:-https://maps.googleapis.com/maps/api}
+      GOOGLE_MAPS_ROUTES_BASE_URL: ${GOOGLE_MAPS_ROUTES_BASE_URL:-https://routes.googleapis.com}
+      GOOGLE_MAPS_CONNECT_TIMEOUT_MILLIS: ${GOOGLE_MAPS_CONNECT_TIMEOUT_MILLIS:-2000}
+      GOOGLE_MAPS_READ_TIMEOUT_MILLIS: ${GOOGLE_MAPS_READ_TIMEOUT_MILLIS:-5000}
+      GOOGLE_MAPS_GEOCODING_CACHE_TTL: ${GOOGLE_MAPS_GEOCODING_CACHE_TTL:-48h}
+      GOOGLE_MAPS_DIRECTIONS_CACHE_TTL: ${GOOGLE_MAPS_DIRECTIONS_CACHE_TTL:-10m}
+      GOOGLE_MAPS_CACHE_MAXIMUM_SIZE: ${GOOGLE_MAPS_CACHE_MAXIMUM_SIZE:-10000}
+      GOOGLE_MAPS_RETRY_ATTEMPTS: ${GOOGLE_MAPS_RETRY_ATTEMPTS:-3}
+      GOOGLE_MAPS_RETRY_WAIT: ${GOOGLE_MAPS_RETRY_WAIT:-500ms}
+      GOOGLE_MAPS_CIRCUIT_BREAKER_FAILURE_RATE_THRESHOLD: ${GOOGLE_MAPS_CIRCUIT_BREAKER_FAILURE_RATE_THRESHOLD:-50}
+      GOOGLE_MAPS_CIRCUIT_BREAKER_SLIDING_WINDOW_SIZE: ${GOOGLE_MAPS_CIRCUIT_BREAKER_SLIDING_WINDOW_SIZE:-20}
+      GOOGLE_MAPS_RATE_LIMIT_PER_MINUTE: ${GOOGLE_MAPS_RATE_LIMIT_PER_MINUTE:-60}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     depends_on:
@@ -91,6 +105,7 @@ services:
       - guardian_network
 
   frontend:
+    image: ${FRONTEND_IMAGE:-gps_guardian_escolar_frontend}:${FRONTEND_IMAGE_TAG:-local}
     build:
       context: ../Fronted-GuardianEscolar-
       dockerfile: Dockerfile

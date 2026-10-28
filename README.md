@@ -1,62 +1,36 @@
 # Docker Infra
 
-Esta carpeta centraliza la ejecucion por contenedores de GPS Guardian Escolar.
+Esta carpeta centraliza la ejecucion por contenedores de Guardian Escolar.
 
-## Servicios
+## Despliegue reproducible
 
-- `database`: PostgreSQL 15 con la estructura cargada desde `../DB-Structure-Guardian-Escolar`.
-- `backend`: API Spring Boot construida desde `../backend`.
-- `frontend`: aplicacion Expo Web construida desde `../Fronted-GuardianEscolar-` y servida con Nginx.
+Antes de publicar una version, fija cada repositorio en el commit aprobado y registra los SHA de los cuatro repositorios junto con las referencias completas de sus imagenes. Para Liquibase, Backend y Frontend usa nombres de imagen de un registry y etiquetas inmutables derivadas del release. Fija tambien PostgreSQL por digest para produccion.
 
-## Ejecutar desde la raiz del proyecto
+Define `POSTGRES_IMAGE`, `LIQUIBASE_IMAGE`, `LIQUIBASE_IMAGE_TAG`, `BACKEND_IMAGE`, `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE` y `FRONTEND_IMAGE_TAG` en el archivo de release. Los valores locales de `.env.example` sirven para desarrollo y no son referencias de release.
 
-```powershell
-docker compose --env-file .\docker-infra\.env -f .\docker-infra\docker-compose.yaml up --build
-```
+Construye y publica solo las imagenes propias:
 
-## Ejecutar desde esta carpeta
+~~~powershell
+docker compose --env-file .\.env build --pull liquibase backend frontend
+docker compose --env-file .\.env push liquibase backend frontend
+~~~
 
-```powershell
-docker compose --env-file .\.env up --build
-```
+En el host de despliegue, configura el mismo archivo de release y sus secretos, descarga esas referencias e inicia el stack sin reconstruir:
 
-## Puertos
+~~~powershell
+docker compose --env-file .\.env pull
+docker compose --env-file .\.env up -d
+~~~
 
-- Frontend: `http://localhost:8081`
-- Backend: `http://localhost:8080`
-- Base de datos: `localhost:5432`
+El servicio Liquibase debe finalizar antes de iniciar el Backend. Comprueba salud de la base, el endpoint de salud del Backend y el acceso al Frontend antes de aceptar trafico.
 
-## Persistencia
+## Rollback
 
-La base de datos guarda los datos en el volumen:
+Restaura en el manifiesto las referencias inmutables de la version aprobada anterior, luego descarga y vuelve a iniciar las imagenes:
 
-```text
-gps_guardian_escolar_postgres_data
-```
+~~~powershell
+docker compose --env-file .\.env pull
+docker compose --env-file .\.env up --no-build -d backend frontend
+~~~
 
-Usa `docker compose down` para apagar conservando datos.
-Usa `docker compose down -v` solo si quieres borrar tambien la base de datos.
-
-## Uso con contenedor o tunnel
-
-Cuando el frontend se sirve desde el contenedor, usa rutas relativas para que el mismo dominio del navegador atienda frontend y API:
-
-```env
-EXPO_PUBLIC_API_URL=/api
-EXPO_PUBLIC_WS_URL=/ws
-EXPO_PUBLIC_STUDENT_LINK_BASE_URL=/
-```
-
-Nginx recibe `/api` y `/ws` en el contenedor frontend y los reenvia al servicio `backend` dentro de Docker. Esto permite abrir un tunnel solo al puerto `8081` del frontend.
-
-## Uso con Expo Go o LAN
-
-Si abres la app desde Expo Go o desde el servidor de desarrollo sin Nginx, usa una IP/URL alcanzable para el backend:
-
-```env
-EXPO_PUBLIC_API_URL=http://TU_IP:8080/api
-EXPO_PUBLIC_WS_URL=ws://TU_IP:8080/ws
-EXPO_PUBLIC_STUDENT_LINK_BASE_URL=http://TU_IP:8081
-FRONTEND_BASE_URL=http://TU_IP:8081
-API_PUBLIC_BASE_URL=http://TU_IP:8080
-```
+Este paso revierte las imagenes de aplicacion; no revierte cambios de esquema. Ejecuta un rollback Liquibase revisado solo despues de respaldar y validar la base en un entorno descartable. `docker compose down` conserva el volumen de PostgreSQL. No uses `docker compose down -v` como rollback.
