@@ -5,8 +5,9 @@
 1. Record the approved commit SHA for Docker Infra, DB Structure, Backend and Frontend.
 2. Set the release image references in `.env`. Use immutable registry tags for Liquibase, Backend and Frontend, and a digest-pinned PostgreSQL image in production.
 3. Set non-empty `POSTGRES_PASSWORD` and a random `JWT_SECRET` of at least 32 bytes. When the least-privilege application-role change is part of the target release, also set the required `APP_DB_PASSWORD` before starting the stack.
-4. If `LIQUIBASE_CONTEXTS=local`, provide `ADMIN_EMAIL`, `ADMIN_PHONE` and a BCrypt `ADMIN_PASSWORD_HASH` for the local seed.
-5. Validate the rendered Compose configuration:
+4. For a first deployed administrator only, run Liquibase once with `LIQUIBASE_CONTEXTS=prod,bootstrap` and inject `ADMIN_EMAIL`, `ADMIN_PHONE` and a BCrypt `ADMIN_PASSWORD_HASH` from the environment secret store. Do not commit these values.
+5. For normal deployments, use `LIQUIBASE_CONTEXTS=prod`; the bootstrap variables are not needed.
+6. Validate the rendered Compose configuration:
 
 ~~~powershell
 docker compose --env-file .\.env config --quiet
