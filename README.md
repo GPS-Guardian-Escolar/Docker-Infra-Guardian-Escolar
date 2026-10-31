@@ -8,6 +8,21 @@ Antes de publicar una version, fija cada repositorio en el commit aprobado y reg
 
 Define `POSTGRES_IMAGE`, `LIQUIBASE_IMAGE`, `LIQUIBASE_IMAGE_TAG`, `BACKEND_IMAGE`, `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE` y `FRONTEND_IMAGE_TAG` en el archivo de release. Los valores locales de `.env.example` sirven para desarrollo y no son referencias de release.
 
+La base de datos conserva `POSTGRES_USER` y `POSTGRES_PASSWORD` únicamente como
+credenciales de bootstrap para PostgreSQL y Liquibase. El contenedor `backend` se conecta
+con `APP_DB_USERNAME` (por defecto `gps_guardian_app`) y `APP_DB_PASSWORD`, el rol de
+mínimo privilegio creado por los changesets de `DB-Structure-Guardian-Escolar`. No se
+deben copiar las credenciales del superusuario al servicio de aplicación.
+
+Para comprobarlo en un entorno local después del arranque:
+
+~~~powershell
+docker compose --env-file .\.env exec database psql -U gps_guardian_app -d gps_guardian_escolar -c "select current_user;"
+~~~
+
+El resultado esperado es `gps_guardian_app`, nunca `postgres`. `APP_DB_PASSWORD` debe
+ser un secreto local/de despliegue y no se publica en este repositorio.
+
 Construye y publica solo las imagenes propias:
 
 ~~~powershell

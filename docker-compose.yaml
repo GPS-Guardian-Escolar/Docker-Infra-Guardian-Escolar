@@ -63,8 +63,10 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-gps_guardian_escolar}
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # The application must use the least-privilege role created by Liquibase.
+      # POSTGRES_USER/POSTGRES_PASSWORD remain bootstrap credentials for the DB and Liquibase only.
+      DB_USERNAME: ${APP_DB_USERNAME:-gps_guardian_app}
+      DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD for gps_guardian_app}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-30}
       REQUIRE_HTTPS: ${REQUIRE_HTTPS:-false}
