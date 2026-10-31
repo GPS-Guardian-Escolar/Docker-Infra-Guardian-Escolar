@@ -4,6 +4,10 @@ Esta carpeta centraliza la ejecucion por contenedores de Guardian Escolar.
 
 ## Despliegue reproducible
 
+El stack inicia en este orden: `database` saludable, `liquibase` finalizado correctamente,
+`backend` saludable y finalmente `frontend` saludable. Los healthchecks consultan servicios
+reales: PostgreSQL con `pg_isready`, Backend con `GET /api/health` y Frontend con `GET /`.
+
 Antes de publicar una version, fija cada repositorio en el commit aprobado y registra los SHA de los cuatro repositorios junto con las referencias completas de sus imagenes. Para Liquibase, Backend y Frontend usa nombres de imagen de un registry y etiquetas inmutables derivadas del release. Fija tambien PostgreSQL por digest para produccion.
 
 Define `POSTGRES_IMAGE`, `LIQUIBASE_IMAGE`, `LIQUIBASE_IMAGE_TAG`, `BACKEND_IMAGE`, `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE` y `FRONTEND_IMAGE_TAG` en el archivo de release. Los valores locales de `.env.example` sirven para desarrollo y no son referencias de release.
@@ -37,7 +41,22 @@ docker compose --env-file .\.env pull
 docker compose --env-file .\.env up -d
 ~~~
 
-El servicio Liquibase debe finalizar antes de iniciar el Backend. Comprueba salud de la base, el endpoint de salud del Backend y el acceso al Frontend antes de aceptar trafico.
+El servicio Liquibase debe finalizar correctamente antes de iniciar el Backend. Comprueba el
+estado del stack y los endpoints antes de aceptar trafico:
+
+~~~powershell
+docker compose --env-file .\.env ps
+Invoke-WebRequest http://localhost:8080/api/health
+Invoke-WebRequest http://localhost:8081/
+~~~
+
+Todos los servicios deben mostrar `healthy`, excepto Liquibase, que debe aparecer como
+`exited (0)` después de aplicar las migraciones. Si un servicio no está saludable, revisa sus
+logs antes de reiniciar:
+
+~~~powershell
+docker compose --env-file .\.env logs --tail=100 database liquibase backend frontend
+~~~
 
 ## Rollback
 
