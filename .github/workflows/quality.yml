@@ -38,3 +38,16 @@ jobs:
         run: docker compose config --quiet
       - working-directory: Docker-Infra-Guardian-Escolar
         run: docker compose build
+      - working-directory: Docker-Infra-Guardian-Escolar
+        run: docker compose up -d
+      - name: Verify running stack
+        working-directory: Docker-Infra-Guardian-Escolar
+        run: |
+          docker compose ps
+          timeout 120s bash -c 'until [ "$(docker inspect --format="{{.State.Health.Status}}" gps_guardian_escolar_backend 2>/dev/null)" = "healthy" ]; do sleep 5; done'
+          curl --fail http://localhost:8080/api/health
+          timeout 60s bash -c 'until [ "$(docker inspect --format="{{.State.Health.Status}}" gps_guardian_escolar_frontend 2>/dev/null)" = "healthy" ]; do sleep 5; done'
+          curl --fail http://localhost:8081/
+      - if: always()
+        working-directory: Docker-Infra-Guardian-Escolar
+        run: docker compose down -v
