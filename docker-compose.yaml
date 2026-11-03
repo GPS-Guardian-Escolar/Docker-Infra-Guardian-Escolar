@@ -103,7 +103,7 @@ services:
       liquibase:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8080/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
