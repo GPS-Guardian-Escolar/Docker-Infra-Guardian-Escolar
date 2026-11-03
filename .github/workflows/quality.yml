@@ -38,3 +38,37 @@ jobs:
         run: docker compose config --quiet
       - working-directory: Docker-Infra-Guardian-Escolar
         run: docker compose build
+      - name: Start stack and verify healthchecks
+        working-directory: Docker-Infra-Guardian-Escolar
+        run: |
+          docker compose up -d
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/api/health \
+              && curl --fail --silent http://127.0.0.1:8081/ >/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          curl --fail --silent http://127.0.0.1:8080/api/health
+          curl --fail --silent http://127.0.0.1:8081/ >/dev/null
+          docker compose ps
+      - name: Save deployment evidence
+        if: always()
+        working-directory: Docker-Infra-Guardian-Escolar
+        run: |
+          mkdir -p evidence
+          docker compose ps > evidence/compose-ps.txt
+          docker compose config > evidence/compose-rendered.yaml
+          docker compose logs --no-color > evidence/compose-logs.txt
+          cp docs/DEPLOYMENT_ROLLBACK.md evidence/DEPLOYMENT_ROLLBACK.md
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-evidence
+          path: Docker-Infra-Guardian-Escolar/evidence
+          if-no-files-found: error
+      - name: Stop stack
+        if: always()
+        working-directory: Docker-Infra-Guardian-Escolar
+        run: docker compose down -v

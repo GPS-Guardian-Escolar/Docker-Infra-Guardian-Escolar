@@ -2,7 +2,7 @@ name: gps-guardian-escolar
 
 services:
   database:
-    image: ${POSTGRES_IMAGE:-postgres:15}
+    image: ${POSTGRES_IMAGE:-postgres:15.8-alpine}
     container_name: gps_guardian_escolar_database
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gps_guardian_escolar}
